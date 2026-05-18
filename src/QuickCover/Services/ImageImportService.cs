@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Playnite.SDK;
 using Playnite.SDK.Models;
@@ -46,40 +45,31 @@ namespace QuickCover.Services
         {
             ValidateGame(game);
 
-            var tempFilePaths = new List<string>();
+            var resolvedCoverImagePath = ResolveImageSource(defaultCoverImagePath, defaultCoverImageUrl, sourceMode);
+            var resolvedBackgroundImagePath = ResolveImageSource(defaultBackgroundImagePath, defaultBackgroundImageUrl, sourceMode);
+            var changed = false;
 
-            try
+            if (!string.IsNullOrWhiteSpace(resolvedCoverImagePath))
             {
-                var resolvedCoverImagePath = ResolveImageSource(defaultCoverImagePath, defaultCoverImageUrl, sourceMode, tempFilePaths);
-                var resolvedBackgroundImagePath = ResolveImageSource(defaultBackgroundImagePath, defaultBackgroundImageUrl, sourceMode, tempFilePaths);
-                var changed = false;
-
-                if (!string.IsNullOrWhiteSpace(resolvedCoverImagePath))
-                {
-                    ReplaceCoverImage(game, resolvedCoverImagePath);
-                    changed = true;
-                }
-
-                if (!string.IsNullOrWhiteSpace(resolvedBackgroundImagePath))
-                {
-                    ReplaceBackgroundImage(game, resolvedBackgroundImagePath);
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    playniteApi.Database.Games.Update(game);
-                }
-
-                return changed;
+                ReplaceCoverImage(game, resolvedCoverImagePath);
+                changed = true;
             }
-            finally
+
+            if (!string.IsNullOrWhiteSpace(resolvedBackgroundImagePath))
             {
-                CleanupTempFiles(tempFilePaths);
+                ReplaceBackgroundImage(game, resolvedBackgroundImagePath);
+                changed = true;
             }
+
+            if (changed)
+            {
+                playniteApi.Database.Games.Update(game);
+            }
+
+            return changed;
         }
 
-        private string ResolveImageSource(string imagePath, string imageUrl, DefaultImageSourceMode sourceMode, IList<string> tempFilePaths)
+        private string ResolveImageSource(string imagePath, string imageUrl, DefaultImageSourceMode sourceMode)
         {
             if (sourceMode == DefaultImageSourceMode.PreferLocalThenUrl && !string.IsNullOrWhiteSpace(imagePath))
             {
@@ -97,9 +87,7 @@ namespace QuickCover.Services
                 throw new ArgumentException("Image URL must be a valid http or https URL.", nameof(imageUrl));
             }
 
-            var tempFilePath = imageDownloadService.DownloadToTempFile(imageUrl);
-            tempFilePaths.Add(tempFilePath);
-            return tempFilePath;
+            return imageDownloadService.GetOrDownloadCachedFile(imageUrl);
         }
 
         private static void ValidateGame(Game game)
@@ -143,21 +131,5 @@ namespace QuickCover.Services
             game.BackgroundImage = playniteApi.Database.AddFile(imagePath, game.Id);
         }
 
-        private static void CleanupTempFiles(IEnumerable<string> tempFilePaths)
-        {
-            foreach (var tempFilePath in tempFilePaths)
-            {
-                try
-                {
-                    if (File.Exists(tempFilePath))
-                    {
-                        File.Delete(tempFilePath);
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
     }
 }

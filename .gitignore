@@ -2,6 +2,7 @@
 bin/
 obj/
 build/
+dist/
 
 # Visual Studio / Rider / VS Code
 .vs/

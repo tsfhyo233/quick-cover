@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,7 +15,6 @@ namespace QuickCover
         private readonly IPlayniteAPI playniteApi;
         private readonly QuickCoverSettings settings;
         private readonly ImageDownloadService imageDownloadService;
-        private readonly List<string> previewTempFilePaths = new List<string>();
         private bool isRefreshing;
 
         public QuickCoverSettingsView(IPlayniteAPI playniteApi, QuickCoverSettings settings, ImageDownloadService imageDownloadService)
@@ -28,7 +26,6 @@ namespace QuickCover
             this.imageDownloadService = imageDownloadService;
 
             RefreshDisplayedValues();
-            Unloaded += QuickCoverSettingsView_Unloaded;
         }
 
         private void BrowseDefaultCoverImagePathButton_Click(object sender, RoutedEventArgs e)
@@ -109,12 +106,6 @@ namespace QuickCover
             RefreshPreviews();
         }
 
-        private void QuickCoverSettingsView_Unloaded(object sender, RoutedEventArgs e)
-        {
-            CleanupPreviewTempFiles();
-            Unloaded -= QuickCoverSettingsView_Unloaded;
-        }
-
         private string SelectImagePath()
         {
             return playniteApi.Dialogs.SelectFile(SupportedImageFilter);
@@ -140,40 +131,48 @@ namespace QuickCover
 
         private void RefreshPreviews()
         {
-            CleanupPreviewTempFiles();
+            SetLocalPreviewImage(
+                DefaultCoverLocalPreviewImage,
+                DefaultCoverLocalPreviewPlaceholderTextBlock,
+                settings.DefaultCoverImagePath);
 
-            SetPreviewImage(
-                DefaultCoverPreviewImage,
-                DefaultCoverPreviewPlaceholderTextBlock,
-                settings.DefaultCoverImagePath,
+            SetUrlPreviewImage(
+                DefaultCoverUrlPreviewImage,
+                DefaultCoverUrlPreviewPlaceholderTextBlock,
                 settings.DefaultCoverImageUrl);
 
-            SetPreviewImage(
-                DefaultBackgroundPreviewImage,
-                DefaultBackgroundPreviewPlaceholderTextBlock,
-                settings.DefaultBackgroundImagePath,
+            SetLocalPreviewImage(
+                DefaultBackgroundLocalPreviewImage,
+                DefaultBackgroundLocalPreviewPlaceholderTextBlock,
+                settings.DefaultBackgroundImagePath);
+
+            SetUrlPreviewImage(
+                DefaultBackgroundUrlPreviewImage,
+                DefaultBackgroundUrlPreviewPlaceholderTextBlock,
                 settings.DefaultBackgroundImageUrl);
         }
 
-        private void SetPreviewImage(Image imageControl, TextBlock placeholderTextBlock, string imagePath, string imageUrl)
+        private void SetLocalPreviewImage(Image imageControl, TextBlock placeholderTextBlock, string imagePath)
         {
-            if (!string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath))
+            if (!string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath) && TryLoadPreview(imageControl, imagePath))
             {
-                if (TryLoadPreview(imageControl, imagePath))
-                {
-                    placeholderTextBlock.Visibility = Visibility.Collapsed;
-                    return;
-                }
+                placeholderTextBlock.Visibility = Visibility.Collapsed;
+                return;
             }
 
+            imageControl.Source = null;
+            placeholderTextBlock.Text = string.IsNullOrWhiteSpace(imagePath) ? "No preview" : "Preview unavailable";
+            placeholderTextBlock.Visibility = Visibility.Visible;
+        }
+
+        private void SetUrlPreviewImage(Image imageControl, TextBlock placeholderTextBlock, string imageUrl)
+        {
             if (QuickCoverSettings.IsValidHttpUrl(imageUrl))
             {
                 try
                 {
-                    var tempFilePath = imageDownloadService.DownloadToTempFile(imageUrl);
-                    previewTempFilePaths.Add(tempFilePath);
-
-                    if (TryLoadPreview(imageControl, tempFilePath))
+                    var cachedFilePath = imageDownloadService.GetOrDownloadCachedFile(imageUrl);
+                    if (TryLoadPreview(imageControl, cachedFilePath))
                     {
                         placeholderTextBlock.Visibility = Visibility.Collapsed;
                         return;
@@ -215,23 +214,5 @@ namespace QuickCover
             }
         }
 
-        private void CleanupPreviewTempFiles()
-        {
-            foreach (var previewTempFilePath in previewTempFilePaths)
-            {
-                try
-                {
-                    if (File.Exists(previewTempFilePath))
-                    {
-                        File.Delete(previewTempFilePath);
-                    }
-                }
-                catch
-                {
-                }
-            }
-
-            previewTempFilePaths.Clear();
-        }
     }
 }

@@ -15,10 +15,22 @@
                     <TextBox x:Name="DefaultCoverImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
                     <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
                     <TextBox x:Name="DefaultCoverImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultCoverImageUrlTextBox_TextChanged" LostFocus="DefaultCoverImageUrlTextBox_LostFocus" />
+                    <TextBlock Text="Local preview" Margin="0,0,0,4" Foreground="Gray" />
+                    <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000" Margin="0,0,0,8">
+                        <Grid>
+                            <Image x:Name="DefaultCoverLocalPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultCoverLocalPreviewPlaceholderTextBlock"
+                                       Text="No preview"
+                                       Foreground="Gray"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="URL preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
                         <Grid>
-                            <Image x:Name="DefaultCoverPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultCoverPreviewPlaceholderTextBlock"
+                            <Image x:Name="DefaultCoverUrlPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultCoverUrlPreviewPlaceholderTextBlock"
                                        Text="No preview"
                                        Foreground="Gray"
                                        HorizontalAlignment="Center"
@@ -44,10 +56,22 @@
                     <TextBox x:Name="DefaultBackgroundImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
                     <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
                     <TextBox x:Name="DefaultBackgroundImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultBackgroundImageUrlTextBox_TextChanged" LostFocus="DefaultBackgroundImageUrlTextBox_LostFocus" />
+                    <TextBlock Text="Local preview" Margin="0,0,0,4" Foreground="Gray" />
+                    <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000" Margin="0,0,0,8">
+                        <Grid>
+                            <Image x:Name="DefaultBackgroundLocalPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultBackgroundLocalPreviewPlaceholderTextBlock"
+                                       Text="No preview"
+                                       Foreground="Gray"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="URL preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
                         <Grid>
-                            <Image x:Name="DefaultBackgroundPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultBackgroundPreviewPlaceholderTextBlock"
+                            <Image x:Name="DefaultBackgroundUrlPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultBackgroundUrlPreviewPlaceholderTextBlock"
                                        Text="No preview"
                                        Foreground="Gray"
                                        HorizontalAlignment="Center"
