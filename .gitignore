@@ -1,0 +1,31 @@
+# Build output
+bin/
+obj/
+build/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.rsuser
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Playnite local settings or generated plugin data if added later
+*.bak
