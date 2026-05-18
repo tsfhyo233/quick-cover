@@ -8,6 +8,19 @@ namespace QuickCover.Services
     {
         private static readonly HttpClient HttpClient = CreateHttpClient();
 
+        private readonly string cacheDirectory;
+
+        public ImageDownloadService(string cacheDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(cacheDirectory))
+            {
+                throw new ArgumentException("Cache directory is required.", nameof(cacheDirectory));
+            }
+
+            this.cacheDirectory = cacheDirectory;
+            Directory.CreateDirectory(cacheDirectory);
+        }
+
         public string DownloadToTempFile(string imageUrl)
         {
             if (!QuickCoverSettings.IsValidHttpUrl(imageUrl))
@@ -26,7 +39,7 @@ namespace QuickCover.Services
                 }
 
                 var tempFilePath = Path.Combine(
-                    Path.GetTempPath(),
+                    cacheDirectory,
                     $"quickcover_{Guid.NewGuid():N}{GetFileExtension(mediaType, imageUrl)}");
 
                 using (var inputStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())

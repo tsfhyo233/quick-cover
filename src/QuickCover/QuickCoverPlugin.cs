@@ -30,7 +30,8 @@ namespace QuickCover
 
             settings = new QuickCoverSettings(this);
 
-            imageDownloadService = new ImageDownloadService();
+            var cacheDirectory = System.IO.Path.Combine(GetPluginUserDataPath(), "cache");
+            imageDownloadService = new ImageDownloadService(cacheDirectory);
             var imageImportService = new ImageImportService(api, imageDownloadService);
             setCoverFromFileAction = new SetCoverFromFileAction(api, imageImportService);
             setBackgroundFromFileAction = new SetBackgroundFromFileAction(api, imageImportService);
