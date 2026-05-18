@@ -5,6 +5,7 @@ using Playnite.SDK;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
 using QuickCover.Actions;
+using QuickCover.Models;
 using QuickCover.Services;
 
 namespace QuickCover
@@ -14,9 +15,11 @@ namespace QuickCover
         private static readonly Guid PluginId = Guid.Parse("ef18df4f-b6a1-4ab3-9a6f-67b8bbd4f8f8");
 
         private readonly QuickCoverSettings settings;
+        private readonly ImageDownloadService imageDownloadService;
         private readonly SetCoverFromFileAction setCoverFromFileAction;
         private readonly SetBackgroundFromFileAction setBackgroundFromFileAction;
         private readonly ApplyDefaultImagesAction applyDefaultImagesAction;
+        private readonly ApplyDefaultImagesAction applyDefaultUrlImagesAction;
 
         public QuickCoverPlugin(IPlayniteAPI api) : base(api)
         {
@@ -27,10 +30,12 @@ namespace QuickCover
 
             settings = new QuickCoverSettings(this);
 
-            var imageImportService = new ImageImportService(api);
+            imageDownloadService = new ImageDownloadService();
+            var imageImportService = new ImageImportService(api, imageDownloadService);
             setCoverFromFileAction = new SetCoverFromFileAction(api, imageImportService);
             setBackgroundFromFileAction = new SetBackgroundFromFileAction(api, imageImportService);
-            applyDefaultImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings);
+            applyDefaultImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl);
+            applyDefaultUrlImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.UrlOnly);
         }
 
         public override Guid Id => PluginId;
@@ -42,7 +47,7 @@ namespace QuickCover
 
         public override UserControl GetSettingsView(bool firstRunSettings)
         {
-            return new QuickCoverSettingsView(PlayniteApi, settings);
+            return new QuickCoverSettingsView(PlayniteApi, settings, imageDownloadService);
         }
 
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
@@ -66,6 +71,13 @@ namespace QuickCover
                 Description = "Apply Default Images",
                 MenuSection = "Quick Cover",
                 Action = menuArgs => applyDefaultImagesAction.Execute(menuArgs.Games)
+            };
+
+            yield return new GameMenuItem
+            {
+                Description = "Apply Default URL Images",
+                MenuSection = "Quick Cover",
+                Action = menuArgs => applyDefaultUrlImagesAction.Execute(menuArgs.Games)
             };
         }
     }

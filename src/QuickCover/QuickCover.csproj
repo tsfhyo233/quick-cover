@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="PlayniteSDK" Version="6.16.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup>

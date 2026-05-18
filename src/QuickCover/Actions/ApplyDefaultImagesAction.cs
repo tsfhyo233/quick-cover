@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Playnite.SDK;
 using Playnite.SDK.Models;
+using QuickCover.Models;
 using QuickCover.Services;
 
 namespace QuickCover.Actions
@@ -13,12 +14,14 @@ namespace QuickCover.Actions
         private readonly IPlayniteAPI playniteApi;
         private readonly ImageImportService imageImportService;
         private readonly QuickCoverSettings settings;
+        private readonly DefaultImageSourceMode sourceMode;
 
-        public ApplyDefaultImagesAction(IPlayniteAPI playniteApi, ImageImportService imageImportService, QuickCoverSettings settings)
+        public ApplyDefaultImagesAction(IPlayniteAPI playniteApi, ImageImportService imageImportService, QuickCoverSettings settings, DefaultImageSourceMode sourceMode)
         {
             this.playniteApi = playniteApi;
             this.imageImportService = imageImportService;
             this.settings = settings;
+            this.sourceMode = sourceMode;
         }
 
         public void Execute(IEnumerable<Game> games)
@@ -30,14 +33,14 @@ namespace QuickCover.Actions
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(settings.DefaultCoverImagePath) && string.IsNullOrWhiteSpace(settings.DefaultBackgroundImagePath))
+            if (!HasAnyConfiguredDefaultSource())
             {
-                ShowNotification("Configure at least one default image in Quick Cover settings first.", NotificationType.Error);
+                ShowNotification(GetMissingSourceMessage(), NotificationType.Error);
                 return;
             }
 
-            if (!IsConfiguredPathValid(settings.DefaultCoverImagePath, "default cover image") ||
-                !IsConfiguredPathValid(settings.DefaultBackgroundImagePath, "default background image"))
+            if (!IsConfiguredSourceValid(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl, "default cover image") ||
+                !IsConfiguredSourceValid(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl, "default background image"))
             {
                 return;
             }
@@ -52,7 +55,10 @@ namespace QuickCover.Actions
                     var changed = imageImportService.ApplyDefaultImages(
                         game,
                         settings.DefaultCoverImagePath,
-                        settings.DefaultBackgroundImagePath);
+                        settings.DefaultCoverImageUrl,
+                        settings.DefaultBackgroundImagePath,
+                        settings.DefaultBackgroundImageUrl,
+                        sourceMode);
 
                     if (changed)
                     {
@@ -71,20 +77,69 @@ namespace QuickCover.Actions
                 notificationType);
         }
 
-        private bool IsConfiguredPathValid(string imagePath, string imageLabel)
+        private bool HasAnyConfiguredDefaultSource()
         {
-            if (string.IsNullOrWhiteSpace(imagePath))
+            switch (sourceMode)
+            {
+                case DefaultImageSourceMode.UrlOnly:
+                    return !string.IsNullOrWhiteSpace(settings.DefaultCoverImageUrl)
+                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImageUrl);
+                default:
+                    return !string.IsNullOrWhiteSpace(settings.DefaultCoverImagePath)
+                        || !string.IsNullOrWhiteSpace(settings.DefaultCoverImageUrl)
+                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImagePath)
+                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImageUrl);
+            }
+        }
+
+        private bool IsConfiguredSourceValid(string imagePath, string imageUrl, string imageLabel)
+        {
+            if (sourceMode == DefaultImageSourceMode.UrlOnly)
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    return true;
+                }
+
+                if (QuickCoverSettings.IsValidHttpUrl(imageUrl))
+                {
+                    return true;
+                }
+
+                ShowNotification($"The configured {imageLabel} URL is invalid.", NotificationType.Error);
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(imagePath))
+            {
+                if (File.Exists(imagePath))
+                {
+                    return true;
+                }
+
+                ShowNotification($"The configured {imageLabel} file was not found.", NotificationType.Error);
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(imageUrl))
             {
                 return true;
             }
 
-            if (File.Exists(imagePath))
+            if (QuickCoverSettings.IsValidHttpUrl(imageUrl))
             {
                 return true;
             }
 
-            ShowNotification($"The configured {imageLabel} file was not found.", NotificationType.Error);
+            ShowNotification($"The configured {imageLabel} URL is invalid.", NotificationType.Error);
             return false;
+        }
+
+        private string GetMissingSourceMessage()
+        {
+            return sourceMode == DefaultImageSourceMode.UrlOnly
+                ? "Configure at least one default image URL in Quick Cover settings first."
+                : "Configure at least one default image file or URL in Quick Cover settings first.";
         }
 
         private void ShowNotification(string message, NotificationType notificationType)

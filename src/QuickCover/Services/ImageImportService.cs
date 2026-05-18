@@ -1,17 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Playnite.SDK;
 using Playnite.SDK.Models;
+using QuickCover.Models;
 
 namespace QuickCover.Services
 {
     public class ImageImportService
     {
         private readonly IPlayniteAPI playniteApi;
+        private readonly ImageDownloadService imageDownloadService;
 
-        public ImageImportService(IPlayniteAPI playniteApi)
+        public ImageImportService(IPlayniteAPI playniteApi, ImageDownloadService imageDownloadService)
         {
             this.playniteApi = playniteApi;
+            this.imageDownloadService = imageDownloadService;
         }
 
         public void SetCoverImage(Game game, string imagePath)
@@ -32,32 +36,70 @@ namespace QuickCover.Services
             playniteApi.Database.Games.Update(game);
         }
 
-        public bool ApplyDefaultImages(Game game, string defaultCoverImagePath, string defaultBackgroundImagePath)
+        public bool ApplyDefaultImages(
+            Game game,
+            string defaultCoverImagePath,
+            string defaultCoverImageUrl,
+            string defaultBackgroundImagePath,
+            string defaultBackgroundImageUrl,
+            DefaultImageSourceMode sourceMode)
         {
             ValidateGame(game);
 
-            var changed = false;
+            var tempFilePaths = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(defaultCoverImagePath))
+            try
             {
-                ValidateImagePath(defaultCoverImagePath);
-                ReplaceCoverImage(game, defaultCoverImagePath);
-                changed = true;
+                var resolvedCoverImagePath = ResolveImageSource(defaultCoverImagePath, defaultCoverImageUrl, sourceMode, tempFilePaths);
+                var resolvedBackgroundImagePath = ResolveImageSource(defaultBackgroundImagePath, defaultBackgroundImageUrl, sourceMode, tempFilePaths);
+                var changed = false;
+
+                if (!string.IsNullOrWhiteSpace(resolvedCoverImagePath))
+                {
+                    ReplaceCoverImage(game, resolvedCoverImagePath);
+                    changed = true;
+                }
+
+                if (!string.IsNullOrWhiteSpace(resolvedBackgroundImagePath))
+                {
+                    ReplaceBackgroundImage(game, resolvedBackgroundImagePath);
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    playniteApi.Database.Games.Update(game);
+                }
+
+                return changed;
+            }
+            finally
+            {
+                CleanupTempFiles(tempFilePaths);
+            }
+        }
+
+        private string ResolveImageSource(string imagePath, string imageUrl, DefaultImageSourceMode sourceMode, IList<string> tempFilePaths)
+        {
+            if (sourceMode == DefaultImageSourceMode.PreferLocalThenUrl && !string.IsNullOrWhiteSpace(imagePath))
+            {
+                ValidateImagePath(imagePath);
+                return imagePath;
             }
 
-            if (!string.IsNullOrWhiteSpace(defaultBackgroundImagePath))
+            if (string.IsNullOrWhiteSpace(imageUrl))
             {
-                ValidateImagePath(defaultBackgroundImagePath);
-                ReplaceBackgroundImage(game, defaultBackgroundImagePath);
-                changed = true;
+                return null;
             }
 
-            if (changed)
+            if (!QuickCoverSettings.IsValidHttpUrl(imageUrl))
             {
-                playniteApi.Database.Games.Update(game);
+                throw new ArgumentException("Image URL must be a valid http or https URL.", nameof(imageUrl));
             }
 
-            return changed;
+            var tempFilePath = imageDownloadService.DownloadToTempFile(imageUrl);
+            tempFilePaths.Add(tempFilePath);
+            return tempFilePath;
         }
 
         private static void ValidateGame(Game game)
@@ -99,6 +141,23 @@ namespace QuickCover.Services
             }
 
             game.BackgroundImage = playniteApi.Database.AddFile(imagePath, game.Id);
+        }
+
+        private static void CleanupTempFiles(IEnumerable<string> tempFilePaths)
+        {
+            foreach (var tempFilePath in tempFilePaths)
+            {
+                try
+                {
+                    if (File.Exists(tempFilePath))
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                }
+                catch
+                {
+                }
+            }
         }
     }
 }

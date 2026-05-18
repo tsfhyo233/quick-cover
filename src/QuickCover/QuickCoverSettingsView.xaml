@@ -1,60 +1,74 @@
 <UserControl x:Class="QuickCover.QuickCoverSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             MinWidth="500">
-    <StackPanel Margin="20">
-        <TextBlock Text="Default cover image" FontWeight="SemiBold" />
-        <Grid Margin="0,8,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                <TextBox x:Name="DefaultCoverImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
-                <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
-                    <Grid>
-                        <Image x:Name="DefaultCoverPreviewImage" Stretch="Uniform" />
-                        <TextBlock x:Name="DefaultCoverPreviewPlaceholderTextBlock"
-                                   Text="No preview"
-                                   Foreground="Gray"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
-            </StackPanel>
-            <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                <Button Margin="0,0,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultCoverImagePathButton_Click" />
-                <Button Padding="12,4" Content="Clear" Click="ClearDefaultCoverImagePathButton_Click" />
-            </StackPanel>
-        </Grid>
+             MinWidth="560">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="20">
+            <TextBlock Text="Default cover image" FontWeight="SemiBold" />
+            <Grid Margin="0,8,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
+                    <TextBox x:Name="DefaultCoverImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
+                    <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
+                    <TextBox x:Name="DefaultCoverImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultCoverImageUrlTextBox_TextChanged" LostFocus="DefaultCoverImageUrlTextBox_LostFocus" />
+                    <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
+                        <Grid>
+                            <Image x:Name="DefaultCoverPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultCoverPreviewPlaceholderTextBlock"
+                                       Text="No preview"
+                                       Foreground="Gray"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                    <Button Margin="0,20,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultCoverImagePathButton_Click" />
+                    <Button Margin="0,0,0,20" Padding="12,4" Content="Clear File" Click="ClearDefaultCoverImagePathButton_Click" />
+                    <Button Padding="12,4" Content="Clear URL" Click="ClearDefaultCoverImageUrlButton_Click" />
+                </StackPanel>
+            </Grid>
 
-        <TextBlock Text="Default background image" FontWeight="SemiBold" />
-        <Grid Margin="0,8,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                <TextBox x:Name="DefaultBackgroundImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
-                <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
-                    <Grid>
-                        <Image x:Name="DefaultBackgroundPreviewImage" Stretch="Uniform" />
-                        <TextBlock x:Name="DefaultBackgroundPreviewPlaceholderTextBlock"
-                                   Text="No preview"
-                                   Foreground="Gray"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
-            </StackPanel>
-            <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                <Button Margin="0,0,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultBackgroundImagePathButton_Click" />
-                <Button Padding="12,4" Content="Clear" Click="ClearDefaultBackgroundImagePathButton_Click" />
-            </StackPanel>
-        </Grid>
+            <TextBlock Text="Default background image" FontWeight="SemiBold" />
+            <Grid Margin="0,8,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
+                    <TextBox x:Name="DefaultBackgroundImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
+                    <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
+                    <TextBox x:Name="DefaultBackgroundImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultBackgroundImageUrlTextBox_TextChanged" LostFocus="DefaultBackgroundImageUrlTextBox_LostFocus" />
+                    <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
+                        <Grid>
+                            <Image x:Name="DefaultBackgroundPreviewImage" Stretch="Uniform" />
+                            <TextBlock x:Name="DefaultBackgroundPreviewPlaceholderTextBlock"
+                                       Text="No preview"
+                                       Foreground="Gray"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                    <Button Margin="0,20,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultBackgroundImagePathButton_Click" />
+                    <Button Margin="0,0,0,20" Padding="12,4" Content="Clear File" Click="ClearDefaultBackgroundImagePathButton_Click" />
+                    <Button Padding="12,4" Content="Clear URL" Click="ClearDefaultBackgroundImageUrlButton_Click" />
+                </StackPanel>
+            </Grid>
 
-        <TextBlock Text="Apply Default Images replaces the current cover or background image whenever a default image is configured."
-                   TextWrapping="Wrap"
-                   Foreground="Gray" />
-    </StackPanel>
+            <TextBlock Text="If both a local file and an image URL are set for the same target, the local file is used first by Apply Default Images."
+                       TextWrapping="Wrap"
+                       Foreground="Gray"
+                       Margin="0,0,0,8" />
+            <TextBlock Text="Apply Default Images replaces the current cover or background image whenever a default image source is configured."
+                       TextWrapping="Wrap"
+                       Foreground="Gray" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
