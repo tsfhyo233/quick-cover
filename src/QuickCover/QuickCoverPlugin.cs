@@ -118,7 +118,7 @@ namespace QuickCover
             bitmap.EndInit();
             bitmap.Freeze();
 
-            var iconSource = new CroppedBitmap(bitmap, CreateCenteredSquareCrop(bitmap.PixelWidth, bitmap.PixelHeight, 0.68));
+            var iconSource = new CroppedBitmap(bitmap, CreateCenteredSquareCrop(bitmap.PixelWidth, bitmap.PixelHeight, 0.8));
             iconSource.Freeze();
 
             return new Image
@@ -140,5 +140,6 @@ namespace QuickCover
             var y = Math.Max(0, (pixelHeight - squareSize) / 2);
             return new System.Windows.Int32Rect(x, y, squareSize, squareSize);
         }
+
     }
 }
