@@ -71,10 +71,12 @@ namespace QuickCover.Actions
                 }
             }
 
-            var notificationType = failedGames == 0 ? NotificationType.Info : NotificationType.Error;
-            ShowNotification(
-                $"Applied defaults to {updatedGames} game(s); failed {failedGames}.",
-                notificationType);
+            if (failedGames > 0)
+            {
+                ShowNotification(
+                    $"Applied defaults to {updatedGames} game(s); failed {failedGames}.",
+                    NotificationType.Error);
+            }
         }
 
         private bool HasAnyConfiguredDefaultSource()
