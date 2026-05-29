@@ -41,12 +41,17 @@ namespace QuickCover.Services
             string defaultCoverImageUrl,
             string defaultBackgroundImagePath,
             string defaultBackgroundImageUrl,
-            DefaultImageSourceMode sourceMode)
+            DefaultImageSourceMode sourceMode,
+            DefaultImageTarget imageTarget)
         {
             ValidateGame(game);
 
-            var resolvedCoverImagePath = ResolveImageSource(defaultCoverImagePath, defaultCoverImageUrl, sourceMode);
-            var resolvedBackgroundImagePath = ResolveImageSource(defaultBackgroundImagePath, defaultBackgroundImageUrl, sourceMode);
+            var resolvedCoverImagePath = imageTarget != DefaultImageTarget.BackgroundOnly
+                ? ResolveImageSource(defaultCoverImagePath, defaultCoverImageUrl, sourceMode)
+                : null;
+            var resolvedBackgroundImagePath = imageTarget != DefaultImageTarget.CoverOnly
+                ? ResolveImageSource(defaultBackgroundImagePath, defaultBackgroundImageUrl, sourceMode)
+                : null;
             var changed = false;
 
             if (!string.IsNullOrWhiteSpace(resolvedCoverImagePath))

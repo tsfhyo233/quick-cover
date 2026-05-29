@@ -15,13 +15,15 @@ namespace QuickCover.Actions
         private readonly ImageImportService imageImportService;
         private readonly QuickCoverSettings settings;
         private readonly DefaultImageSourceMode sourceMode;
+        private readonly DefaultImageTarget imageTarget;
 
-        public ApplyDefaultImagesAction(IPlayniteAPI playniteApi, ImageImportService imageImportService, QuickCoverSettings settings, DefaultImageSourceMode sourceMode)
+        public ApplyDefaultImagesAction(IPlayniteAPI playniteApi, ImageImportService imageImportService, QuickCoverSettings settings, DefaultImageSourceMode sourceMode, DefaultImageTarget imageTarget = DefaultImageTarget.Both)
         {
             this.playniteApi = playniteApi;
             this.imageImportService = imageImportService;
             this.settings = settings;
             this.sourceMode = sourceMode;
+            this.imageTarget = imageTarget;
         }
 
         public void Execute(IEnumerable<Game> games)
@@ -39,8 +41,7 @@ namespace QuickCover.Actions
                 return;
             }
 
-            if (!IsConfiguredSourceValid(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl, "default cover image") ||
-                !IsConfiguredSourceValid(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl, "default background image"))
+            if (!AreConfiguredSourcesValid())
             {
                 return;
             }
@@ -58,7 +59,8 @@ namespace QuickCover.Actions
                         settings.DefaultCoverImageUrl,
                         settings.DefaultBackgroundImagePath,
                         settings.DefaultBackgroundImageUrl,
-                        sourceMode);
+                        sourceMode,
+                        imageTarget);
 
                     if (changed)
                     {
@@ -81,17 +83,37 @@ namespace QuickCover.Actions
 
         private bool HasAnyConfiguredDefaultSource()
         {
-            switch (sourceMode)
+            switch (imageTarget)
             {
-                case DefaultImageSourceMode.UrlOnly:
-                    return !string.IsNullOrWhiteSpace(settings.DefaultCoverImageUrl)
-                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImageUrl);
+                case DefaultImageTarget.CoverOnly:
+                    return HasConfiguredSource(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl);
+                case DefaultImageTarget.BackgroundOnly:
+                    return HasConfiguredSource(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl);
                 default:
-                    return !string.IsNullOrWhiteSpace(settings.DefaultCoverImagePath)
-                        || !string.IsNullOrWhiteSpace(settings.DefaultCoverImageUrl)
-                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImagePath)
-                        || !string.IsNullOrWhiteSpace(settings.DefaultBackgroundImageUrl);
+                    return HasConfiguredSource(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl)
+                        || HasConfiguredSource(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl);
             }
+        }
+
+        private bool AreConfiguredSourcesValid()
+        {
+            switch (imageTarget)
+            {
+                case DefaultImageTarget.CoverOnly:
+                    return IsConfiguredSourceValid(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl, "default cover image");
+                case DefaultImageTarget.BackgroundOnly:
+                    return IsConfiguredSourceValid(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl, "default background image");
+                default:
+                    return IsConfiguredSourceValid(settings.DefaultCoverImagePath, settings.DefaultCoverImageUrl, "default cover image")
+                        && IsConfiguredSourceValid(settings.DefaultBackgroundImagePath, settings.DefaultBackgroundImageUrl, "default background image");
+            }
+        }
+
+        private bool HasConfiguredSource(string imagePath, string imageUrl)
+        {
+            return sourceMode == DefaultImageSourceMode.UrlOnly
+                ? !string.IsNullOrWhiteSpace(imageUrl)
+                : !string.IsNullOrWhiteSpace(imagePath) || !string.IsNullOrWhiteSpace(imageUrl);
         }
 
         private bool IsConfiguredSourceValid(string imagePath, string imageUrl, string imageLabel)
@@ -139,9 +161,21 @@ namespace QuickCover.Actions
 
         private string GetMissingSourceMessage()
         {
-            return sourceMode == DefaultImageSourceMode.UrlOnly
-                ? "Configure at least one default image URL in Quick Cover settings first."
-                : "Configure at least one default image file or URL in Quick Cover settings first.";
+            switch (imageTarget)
+            {
+                case DefaultImageTarget.CoverOnly:
+                    return sourceMode == DefaultImageSourceMode.UrlOnly
+                        ? "Configure a default cover image URL in Quick Cover settings first."
+                        : "Configure a default cover image file or URL in Quick Cover settings first.";
+                case DefaultImageTarget.BackgroundOnly:
+                    return sourceMode == DefaultImageSourceMode.UrlOnly
+                        ? "Configure a default background image URL in Quick Cover settings first."
+                        : "Configure a default background image file or URL in Quick Cover settings first.";
+                default:
+                    return sourceMode == DefaultImageSourceMode.UrlOnly
+                        ? "Configure at least one default image URL in Quick Cover settings first."
+                        : "Configure at least one default image file or URL in Quick Cover settings first.";
+            }
         }
 
         private void ShowNotification(string message, NotificationType notificationType)

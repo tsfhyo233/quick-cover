@@ -24,6 +24,8 @@ namespace QuickCover
         private readonly SetBackgroundFromFileAction setBackgroundFromFileAction;
         private readonly ApplyDefaultImagesAction applyDefaultImagesAction;
         private readonly ApplyDefaultImagesAction applyDefaultUrlImagesAction;
+        private readonly ApplyDefaultImagesAction applyDefaultCoverImageAction;
+        private readonly ApplyDefaultImagesAction applyDefaultBackgroundImageAction;
         private readonly string topPanelIconPath;
 
         public QuickCoverPlugin(IPlayniteAPI api) : base(api)
@@ -42,6 +44,8 @@ namespace QuickCover
             setBackgroundFromFileAction = new SetBackgroundFromFileAction(api, imageImportService);
             applyDefaultImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl);
             applyDefaultUrlImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.UrlOnly);
+            applyDefaultCoverImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.CoverOnly);
+            applyDefaultBackgroundImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.BackgroundOnly);
             topPanelIconPath = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "source", "icon.png");
         }
 
@@ -85,6 +89,20 @@ namespace QuickCover
                 Description = "Apply Default URL Images",
                 MenuSection = "Quick Cover",
                 Action = menuArgs => applyDefaultUrlImagesAction.Execute(menuArgs.Games)
+            };
+
+            yield return new GameMenuItem
+            {
+                Description = "Apply Default Cover Image",
+                MenuSection = "Quick Cover",
+                Action = menuArgs => applyDefaultCoverImageAction.Execute(menuArgs.Games)
+            };
+
+            yield return new GameMenuItem
+            {
+                Description = "Apply Default Background Image",
+                MenuSection = "Quick Cover",
+                Action = menuArgs => applyDefaultBackgroundImageAction.Execute(menuArgs.Games)
             };
         }
 
