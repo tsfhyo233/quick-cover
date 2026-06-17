@@ -46,7 +46,7 @@ namespace QuickCover
             applyDefaultUrlImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.UrlOnly);
             applyDefaultCoverImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.CoverOnly);
             applyDefaultBackgroundImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.BackgroundOnly);
-            topPanelIconPath = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "source", "icon.png");
+            topPanelIconPath = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "icon.png");
         }
 
         public override Guid Id => PluginId;
@@ -136,12 +136,9 @@ namespace QuickCover
             bitmap.EndInit();
             bitmap.Freeze();
 
-            var iconSource = new CroppedBitmap(bitmap, CreateCenteredSquareCrop(bitmap.PixelWidth, bitmap.PixelHeight, 0.8));
-            iconSource.Freeze();
-
             return new Image
             {
-                Source = iconSource,
+                Source = bitmap,
                 Width = 22,
                 Height = 22,
                 Stretch = Stretch.Uniform,
@@ -149,14 +146,6 @@ namespace QuickCover
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 RenderTransform = new TranslateTransform(2, 2)
             };
-        }
-
-        private static System.Windows.Int32Rect CreateCenteredSquareCrop(int pixelWidth, int pixelHeight, double cropRatio)
-        {
-            var squareSize = (int)Math.Round(Math.Min(pixelWidth, pixelHeight) * cropRatio);
-            var x = Math.Max(0, (pixelWidth - squareSize) / 2);
-            var y = Math.Max(0, (pixelHeight - squareSize) / 2);
-            return new System.Windows.Int32Rect(x, y, squareSize, squareSize);
         }
 
     }
