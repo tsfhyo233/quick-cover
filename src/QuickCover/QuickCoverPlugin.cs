@@ -46,7 +46,7 @@ namespace QuickCover
             applyDefaultUrlImagesAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.UrlOnly);
             applyDefaultCoverImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.CoverOnly);
             applyDefaultBackgroundImageAction = new ApplyDefaultImagesAction(api, imageImportService, settings, DefaultImageSourceMode.PreferLocalThenUrl, DefaultImageTarget.BackgroundOnly);
-            topPanelIconPath = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "icon.png");
+            topPanelIconPath = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "source", "icon.png");
         }
 
         public override Guid Id => PluginId;

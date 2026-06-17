@@ -21,8 +21,8 @@
       <Link>extension.yaml</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\icon.png">
-      <Link>icon.png</Link>
+    <None Include="..\..\source\icon.png">
+      <Link>source\icon.png</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
