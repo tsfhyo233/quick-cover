@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,7 +37,7 @@ namespace QuickCover
                 return;
             }
 
-            settings.DefaultCoverImagePath = selectedPath;
+            settings.UseDefaultCoverImagePath(selectedPath);
             RefreshDisplayedValues();
         }
 
@@ -60,7 +61,7 @@ namespace QuickCover
                 return;
             }
 
-            settings.DefaultBackgroundImagePath = selectedPath;
+            settings.UseDefaultBackgroundImagePath(selectedPath);
             RefreshDisplayedValues();
         }
 
@@ -74,6 +75,66 @@ namespace QuickCover
         {
             settings.DefaultBackgroundImageUrl = string.Empty;
             RefreshDisplayedValues();
+        }
+
+        private void DefaultCoverImagePathHistoryComboBox_DropDownClosed(object sender, EventArgs e)
+        {
+            RefreshPathHistoryControls();
+        }
+
+        private void DefaultBackgroundImagePathHistoryComboBox_DropDownClosed(object sender, EventArgs e)
+        {
+            RefreshPathHistoryControls();
+        }
+
+        private void DefaultCoverImagePathHistoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (isRefreshing || !(DefaultCoverImagePathHistoryComboBox.SelectedItem is string imagePath))
+            {
+                return;
+            }
+
+            settings.UseDefaultCoverImagePath(imagePath);
+            DefaultCoverImagePathHistoryComboBox.Text = settings.DefaultCoverImagePath;
+            SetLocalPreviewImage(
+                DefaultCoverLocalPreviewImage,
+                DefaultCoverLocalPreviewPlaceholderTextBlock,
+                settings.DefaultCoverImagePath);
+        }
+
+        private void DefaultBackgroundImagePathHistoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (isRefreshing || !(DefaultBackgroundImagePathHistoryComboBox.SelectedItem is string imagePath))
+            {
+                return;
+            }
+
+            settings.UseDefaultBackgroundImagePath(imagePath);
+            DefaultBackgroundImagePathHistoryComboBox.Text = settings.DefaultBackgroundImagePath;
+            SetLocalPreviewImage(
+                DefaultBackgroundLocalPreviewImage,
+                DefaultBackgroundLocalPreviewPlaceholderTextBlock,
+                settings.DefaultBackgroundImagePath);
+        }
+
+        private void RemoveDefaultCoverImagePathHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string imagePath)
+            {
+                settings.RemoveDefaultCoverImagePathHistory(imagePath);
+                RefreshPathHistoryControls();
+                e.Handled = true;
+            }
+        }
+
+        private void RemoveDefaultBackgroundImagePathHistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string imagePath)
+            {
+                settings.RemoveDefaultBackgroundImagePathHistory(imagePath);
+                RefreshPathHistoryControls();
+                e.Handled = true;
+            }
         }
 
         private void DefaultCoverImageUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -116,10 +177,11 @@ namespace QuickCover
             isRefreshing = true;
             try
             {
-                DefaultCoverImagePathTextBox.Text = settings.DefaultCoverImagePath ?? string.Empty;
+                DefaultCoverImagePathHistoryComboBox.Text = settings.DefaultCoverImagePath ?? string.Empty;
                 DefaultCoverImageUrlTextBox.Text = settings.DefaultCoverImageUrl ?? string.Empty;
-                DefaultBackgroundImagePathTextBox.Text = settings.DefaultBackgroundImagePath ?? string.Empty;
+                DefaultBackgroundImagePathHistoryComboBox.Text = settings.DefaultBackgroundImagePath ?? string.Empty;
                 DefaultBackgroundImageUrlTextBox.Text = settings.DefaultBackgroundImageUrl ?? string.Empty;
+                SetPathHistoryItems();
             }
             finally
             {
@@ -127,6 +189,57 @@ namespace QuickCover
             }
 
             RefreshPreviews();
+        }
+
+        private void RefreshPathHistoryControls()
+        {
+            isRefreshing = true;
+            try
+            {
+                SetPathHistoryItems();
+            }
+            finally
+            {
+                isRefreshing = false;
+            }
+        }
+
+        private void SetPathHistoryItems()
+        {
+            var coverHistory = new List<string>(
+                settings.DefaultCoverImagePathHistory ?? new List<string>());
+            var backgroundHistory = new List<string>(
+                settings.DefaultBackgroundImagePathHistory ?? new List<string>());
+
+            DefaultCoverImagePathHistoryComboBox.ItemsSource = coverHistory;
+            DefaultCoverImagePathHistoryComboBox.SelectedItem = FindPath(
+                coverHistory,
+                settings.DefaultCoverImagePath);
+            DefaultCoverImagePathHistoryComboBox.Text = settings.DefaultCoverImagePath ?? string.Empty;
+
+            DefaultBackgroundImagePathHistoryComboBox.ItemsSource = backgroundHistory;
+            DefaultBackgroundImagePathHistoryComboBox.SelectedItem = FindPath(
+                backgroundHistory,
+                settings.DefaultBackgroundImagePath);
+            DefaultBackgroundImagePathHistoryComboBox.Text = settings.DefaultBackgroundImagePath ?? string.Empty;
+        }
+
+        private static string FindPath(IEnumerable<string> history, string imagePath)
+        {
+            if (history == null || string.IsNullOrWhiteSpace(imagePath))
+            {
+                return null;
+            }
+
+            foreach (var historyPath in history)
+            {
+                if (string.Equals(historyPath, imagePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return historyPath;
+                }
+            }
+
+            return null;
         }
 
         private void RefreshPreviews()

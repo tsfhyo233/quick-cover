@@ -10,38 +10,70 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
-                    <TextBox x:Name="DefaultCoverImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
-                    <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
-                    <TextBox x:Name="DefaultCoverImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultCoverImageUrlTextBox_TextChanged" LostFocus="DefaultCoverImageUrlTextBox_LostFocus" />
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
+                <ComboBox x:Name="DefaultCoverImagePathHistoryComboBox"
+                          Grid.Row="1"
+                          Margin="0,0,12,8"
+                          IsEditable="True"
+                          IsReadOnly="True"
+                          IsTextSearchEnabled="False"
+                          VerticalContentAlignment="Center"
+                          HorizontalContentAlignment="Stretch"
+                          DropDownClosed="DefaultCoverImagePathHistoryComboBox_DropDownClosed"
+                          SelectionChanged="DefaultCoverImagePathHistoryComboBox_SelectionChanged">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ComboBoxItem}">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding}" ToolTip="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1" Width="22" Height="22" Margin="8,0,0,0" Padding="0"
+                                        Content="×" ToolTip="Remove from history" Tag="{Binding}"
+                                        Click="RemoveDefaultCoverImagePathHistoryButton_Click" />
+                            </Grid>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                    <Button Padding="12,4" Margin="0,0,8,0" Content="Browse..." Click="BrowseDefaultCoverImagePathButton_Click" />
+                    <Button Padding="12,4" Content="Clear File" Click="ClearDefaultCoverImagePathButton_Click" />
+                </StackPanel>
+                <TextBlock Grid.Row="2" Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
+                <TextBox x:Name="DefaultCoverImageUrlTextBox" Grid.Row="3" Margin="0,0,12,8" VerticalContentAlignment="Center"
+                         TextChanged="DefaultCoverImageUrlTextBox_TextChanged" LostFocus="DefaultCoverImageUrlTextBox_LostFocus" />
+                <Button Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8" Padding="12,4"
+                        Content="Clear URL" Click="ClearDefaultCoverImageUrlButton_Click" />
+                <StackPanel Grid.Row="4" Margin="0,0,12,0">
                     <TextBlock Text="Local preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000" Margin="0,0,0,8">
                         <Grid>
                             <Image x:Name="DefaultCoverLocalPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultCoverLocalPreviewPlaceholderTextBlock"
-                                       Text="No preview"
-                                       Foreground="Gray"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="DefaultCoverLocalPreviewPlaceholderTextBlock" Text="No preview" Foreground="Gray"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <TextBlock Text="URL preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
                         <Grid>
                             <Image x:Name="DefaultCoverUrlPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultCoverUrlPreviewPlaceholderTextBlock"
-                                       Text="No preview"
-                                       Foreground="Gray"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="DefaultCoverUrlPreviewPlaceholderTextBlock" Text="No preview" Foreground="Gray"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
-                </StackPanel>
-                <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                    <Button Margin="0,20,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultCoverImagePathButton_Click" />
-                    <Button Margin="0,0,0,20" Padding="12,4" Content="Clear File" Click="ClearDefaultCoverImagePathButton_Click" />
-                    <Button Padding="12,4" Content="Clear URL" Click="ClearDefaultCoverImageUrlButton_Click" />
                 </StackPanel>
             </Grid>
 
@@ -51,48 +83,77 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
-                    <TextBox x:Name="DefaultBackgroundImagePathTextBox" Margin="0,0,0,8" IsReadOnly="True" VerticalContentAlignment="Center" />
-                    <TextBlock Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
-                    <TextBox x:Name="DefaultBackgroundImageUrlTextBox" Margin="0,0,0,8" VerticalContentAlignment="Center" TextChanged="DefaultBackgroundImageUrlTextBox_TextChanged" LostFocus="DefaultBackgroundImageUrlTextBox_LostFocus" />
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Local file" Margin="0,0,0,4" Foreground="Gray" />
+                <ComboBox x:Name="DefaultBackgroundImagePathHistoryComboBox"
+                          Grid.Row="1"
+                          Margin="0,0,12,8"
+                          IsEditable="True"
+                          IsReadOnly="True"
+                          IsTextSearchEnabled="False"
+                          VerticalContentAlignment="Center"
+                          HorizontalContentAlignment="Stretch"
+                          DropDownClosed="DefaultBackgroundImagePathHistoryComboBox_DropDownClosed"
+                          SelectionChanged="DefaultBackgroundImagePathHistoryComboBox_SelectionChanged">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ComboBoxItem}">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding}" ToolTip="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1" Width="22" Height="22" Margin="8,0,0,0" Padding="0"
+                                        Content="×" ToolTip="Remove from history" Tag="{Binding}"
+                                        Click="RemoveDefaultBackgroundImagePathHistoryButton_Click" />
+                            </Grid>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                    <Button Padding="12,4" Margin="0,0,8,0" Content="Browse..." Click="BrowseDefaultBackgroundImagePathButton_Click" />
+                    <Button Padding="12,4" Content="Clear File" Click="ClearDefaultBackgroundImagePathButton_Click" />
+                </StackPanel>
+                <TextBlock Grid.Row="2" Text="Image URL" Margin="0,0,0,4" Foreground="Gray" />
+                <TextBox x:Name="DefaultBackgroundImageUrlTextBox" Grid.Row="3" Margin="0,0,12,8" VerticalContentAlignment="Center"
+                         TextChanged="DefaultBackgroundImageUrlTextBox_TextChanged" LostFocus="DefaultBackgroundImageUrlTextBox_LostFocus" />
+                <Button Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,8" Padding="12,4"
+                        Content="Clear URL" Click="ClearDefaultBackgroundImageUrlButton_Click" />
+                <StackPanel Grid.Row="4" Margin="0,0,12,0">
                     <TextBlock Text="Local preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000" Margin="0,0,0,8">
                         <Grid>
                             <Image x:Name="DefaultBackgroundLocalPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultBackgroundLocalPreviewPlaceholderTextBlock"
-                                       Text="No preview"
-                                       Foreground="Gray"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="DefaultBackgroundLocalPreviewPlaceholderTextBlock" Text="No preview" Foreground="Gray"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <TextBlock Text="URL preview" Margin="0,0,0,4" Foreground="Gray" />
                     <Border Width="220" Height="124" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4" Background="#11000000">
                         <Grid>
                             <Image x:Name="DefaultBackgroundUrlPreviewImage" Stretch="Uniform" />
-                            <TextBlock x:Name="DefaultBackgroundUrlPreviewPlaceholderTextBlock"
-                                       Text="No preview"
-                                       Foreground="Gray"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="DefaultBackgroundUrlPreviewPlaceholderTextBlock" Text="No preview" Foreground="Gray"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
-                </StackPanel>
-                <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                    <Button Margin="0,20,0,8" Padding="12,4" Content="Browse..." Click="BrowseDefaultBackgroundImagePathButton_Click" />
-                    <Button Margin="0,0,0,20" Padding="12,4" Content="Clear File" Click="ClearDefaultBackgroundImagePathButton_Click" />
-                    <Button Padding="12,4" Content="Clear URL" Click="ClearDefaultBackgroundImageUrlButton_Click" />
                 </StackPanel>
             </Grid>
 
             <TextBlock Text="If both a local file and an image URL are set for the same target, the local file is used first by Apply Default Images."
-                       TextWrapping="Wrap"
-                       Foreground="Gray"
-                       Margin="0,0,0,8" />
+                       TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8" />
             <TextBlock Text="Apply Default Images replaces the current cover or background image whenever a default image source is configured."
-                       TextWrapping="Wrap"
-                       Foreground="Gray" />
+                       TextWrapping="Wrap" Foreground="Gray" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
