@@ -4,6 +4,39 @@
              MinWidth="560">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20">
+            <TextBlock Text="Image presets" FontWeight="SemiBold" />
+            <Grid Margin="0,8,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="ImagePresetsComboBox" Margin="0,0,12,0"
+                          IsEditable="True" IsReadOnly="True" IsTextSearchEnabled="False"
+                          VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch"
+                          SelectionChanged="ImagePresetsComboBox_SelectionChanged">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ComboBoxItem}">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1" Width="22" Height="22" Margin="8,0,0,0" Padding="0"
+                                        Content="×" ToolTip="Remove preset" Tag="{Binding}"
+                                        Click="RemoveImagePresetButton_Click" />
+                            </Grid>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Grid.Column="1" VerticalAlignment="Center" Padding="12,4"
+                        Content="Save Current..." Click="SaveCurrentImagePresetButton_Click" />
+            </Grid>
             <TextBlock Text="Default cover image" FontWeight="SemiBold" />
             <Grid Margin="0,8,0,16">
                 <Grid.ColumnDefinitions>

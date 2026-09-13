@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Playnite.SDK;
+using QuickCover.Models;
 
 namespace QuickCover
 {
@@ -17,6 +18,7 @@ namespace QuickCover
         private List<string> editingDefaultCoverImagePathHistory = new List<string>();
         private List<string> editingDefaultBackgroundImagePathHistory = new List<string>();
         private bool editingPathHistoryInitialized;
+        private List<QuickCoverImagePreset> editingImagePresets = new List<QuickCoverImagePreset>();
 
         public string DefaultCoverImagePath { get; set; } = string.Empty;
 
@@ -31,6 +33,8 @@ namespace QuickCover
         public List<string> DefaultBackgroundImagePathHistory { get; set; } = new List<string>();
 
         public bool PathHistoryInitialized { get; set; }
+
+        public List<QuickCoverImagePreset> ImagePresets { get; set; } = new List<QuickCoverImagePreset>();
 
         public QuickCoverSettings()
         {
@@ -59,6 +63,7 @@ namespace QuickCover
                 DefaultBackgroundImagePathHistory = NormalizePathHistory(
                     savedSettings.DefaultBackgroundImagePathHistory,
                     legacyBackgroundPath);
+                ImagePresets = NormalizeImagePresets(savedSettings.ImagePresets);
             }
 
             PathHistoryInitialized = true;
@@ -73,6 +78,7 @@ namespace QuickCover
             editingDefaultCoverImagePathHistory = new List<string>(DefaultCoverImagePathHistory ?? new List<string>());
             editingDefaultBackgroundImagePathHistory = new List<string>(DefaultBackgroundImagePathHistory ?? new List<string>());
             editingPathHistoryInitialized = PathHistoryInitialized;
+            editingImagePresets = CloneImagePresets(ImagePresets);
         }
 
         public void CancelEdit()
@@ -84,6 +90,7 @@ namespace QuickCover
             DefaultCoverImagePathHistory = new List<string>(editingDefaultCoverImagePathHistory);
             DefaultBackgroundImagePathHistory = new List<string>(editingDefaultBackgroundImagePathHistory);
             PathHistoryInitialized = editingPathHistoryInitialized;
+            ImagePresets = CloneImagePresets(editingImagePresets);
         }
 
         public void EndEdit()
@@ -133,6 +140,105 @@ namespace QuickCover
         public void RemoveDefaultBackgroundImagePathHistory(string imagePath)
         {
             RemovePathFromHistory(DefaultBackgroundImagePathHistory, imagePath);
+        }
+
+        public QuickCoverImagePreset FindImagePreset(string name)
+        {
+            var normalizedName = name?.Trim() ?? string.Empty;
+            return ImagePresets?.Find(preset => preset != null &&
+                string.Equals(preset.Name, normalizedName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool SaveCurrentAsImagePreset(string name)
+        {
+            var preset = new QuickCoverImagePreset
+            {
+                Name = name?.Trim() ?? string.Empty,
+                CoverImagePath = DefaultCoverImagePath?.Trim() ?? string.Empty,
+                CoverImageUrl = DefaultCoverImageUrl?.Trim() ?? string.Empty,
+                BackgroundImagePath = DefaultBackgroundImagePath?.Trim() ?? string.Empty,
+                BackgroundImageUrl = DefaultBackgroundImageUrl?.Trim() ?? string.Empty
+            };
+            if (string.IsNullOrWhiteSpace(preset.Name) || !preset.HasImageSource())
+            {
+                return false;
+            }
+
+            ImagePresets = ImagePresets ?? new List<QuickCoverImagePreset>();
+            var existingPreset = FindImagePreset(preset.Name);
+            if (existingPreset == null)
+            {
+                ImagePresets.Add(preset);
+            }
+            else
+            {
+                ImagePresets[ImagePresets.IndexOf(existingPreset)] = preset;
+            }
+
+            return true;
+        }
+
+        public void UseImagePreset(QuickCoverImagePreset preset)
+        {
+            if (preset == null)
+            {
+                return;
+            }
+
+            DefaultCoverImagePath = preset.CoverImagePath ?? string.Empty;
+            DefaultCoverImageUrl = preset.CoverImageUrl ?? string.Empty;
+            DefaultBackgroundImagePath = preset.BackgroundImagePath ?? string.Empty;
+            DefaultBackgroundImageUrl = preset.BackgroundImageUrl ?? string.Empty;
+            UseDefaultCoverImagePath(DefaultCoverImagePath);
+            UseDefaultBackgroundImagePath(DefaultBackgroundImagePath);
+        }
+
+        public void RemoveImagePreset(string name)
+        {
+            var preset = FindImagePreset(name);
+            if (preset != null)
+            {
+                ImagePresets.Remove(preset);
+            }
+        }
+
+        private static List<QuickCoverImagePreset> CloneImagePresets(IEnumerable<QuickCoverImagePreset> presets)
+        {
+            var copies = new List<QuickCoverImagePreset>();
+            if (presets != null)
+            {
+                foreach (var preset in presets)
+                {
+                    if (preset != null)
+                    {
+                        copies.Add(preset.Clone());
+                    }
+                }
+            }
+
+            return copies;
+        }
+
+        private static List<QuickCoverImagePreset> NormalizeImagePresets(IEnumerable<QuickCoverImagePreset> presets)
+        {
+            var normalizedPresets = new List<QuickCoverImagePreset>();
+            foreach (var preset in CloneImagePresets(presets))
+            {
+                preset.Name = preset.Name.Trim();
+                preset.CoverImagePath = preset.CoverImagePath.Trim();
+                preset.CoverImageUrl = preset.CoverImageUrl.Trim();
+                preset.BackgroundImagePath = preset.BackgroundImagePath.Trim();
+                preset.BackgroundImageUrl = preset.BackgroundImageUrl.Trim();
+                if (string.IsNullOrWhiteSpace(preset.Name) || !preset.HasImageSource() ||
+                    normalizedPresets.Exists(item => string.Equals(item.Name, preset.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                normalizedPresets.Add(preset);
+            }
+
+            return normalizedPresets;
         }
 
         public static bool IsValidHttpUrl(string imageUrl)

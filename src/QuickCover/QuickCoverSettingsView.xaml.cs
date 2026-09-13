@@ -17,6 +17,7 @@ namespace QuickCover
         private readonly QuickCoverSettings settings;
         private readonly ImageDownloadService imageDownloadService;
         private bool isRefreshing;
+        private string selectedPresetName;
 
         public QuickCoverSettingsView(IPlayniteAPI playniteApi, QuickCoverSettings settings, ImageDownloadService imageDownloadService)
         {
@@ -26,7 +27,128 @@ namespace QuickCover
             this.settings = settings;
             this.imageDownloadService = imageDownloadService;
 
+            RefreshImagePresetControls();
             RefreshDisplayedValues();
+        }
+
+        private void ImagePresetsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (isRefreshing || !(ImagePresetsComboBox.SelectedItem is string name))
+            {
+                return;
+            }
+
+            var preset = settings.FindImagePreset(name);
+            if (preset == null)
+            {
+                return;
+            }
+
+            selectedPresetName = preset.Name;
+            settings.UseImagePreset(preset);
+            RefreshDisplayedValues();
+        }
+
+        private void SaveCurrentImagePresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(settings.DefaultCoverImagePath) &&
+                string.IsNullOrWhiteSpace(settings.DefaultCoverImageUrl) &&
+                string.IsNullOrWhiteSpace(settings.DefaultBackgroundImagePath) &&
+                string.IsNullOrWhiteSpace(settings.DefaultBackgroundImageUrl))
+            {
+                playniteApi.Dialogs.ShowMessage("Configure a cover or background image before saving a preset.", "Quick Cover");
+                return;
+            }
+
+            var result = playniteApi.Dialogs.SelectString("Enter a preset name.", "Quick Cover", selectedPresetName ?? string.Empty);
+            if (result == null || !result.Result)
+            {
+                return;
+            }
+
+            var name = result.SelectedString?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                playniteApi.Dialogs.ShowMessage("Preset name cannot be empty.", "Quick Cover");
+                return;
+            }
+
+            if (settings.FindImagePreset(name) != null &&
+                playniteApi.Dialogs.ShowMessage($"Overwrite preset \"{name}\"?", "Quick Cover",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            if (settings.SaveCurrentAsImagePreset(name))
+            {
+                selectedPresetName = name;
+                RefreshImagePresetControls();
+            }
+        }
+
+        private void RemoveImagePresetButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string name)
+            {
+                settings.RemoveImagePreset(name);
+                if (string.Equals(selectedPresetName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    selectedPresetName = null;
+                }
+
+                RefreshImagePresetControls();
+                e.Handled = true;
+            }
+        }
+
+        private void ClearImagePresetSelection()
+        {
+            selectedPresetName = null;
+            var wasRefreshing = isRefreshing;
+            isRefreshing = true;
+            try
+            {
+                ImagePresetsComboBox.SelectedItem = null;
+                ImagePresetsComboBox.Text = string.Empty;
+            }
+            finally
+            {
+                isRefreshing = wasRefreshing;
+            }
+        }
+
+        private void RefreshImagePresetControls()
+        {
+            var wasRefreshing = isRefreshing;
+            isRefreshing = true;
+            try
+            {
+                SetImagePresetItems();
+            }
+            finally
+            {
+                isRefreshing = wasRefreshing;
+            }
+        }
+
+        private void SetImagePresetItems()
+        {
+            var names = new List<string>();
+            if (settings.ImagePresets != null)
+            {
+                foreach (var preset in settings.ImagePresets)
+                {
+                    if (preset != null)
+                    {
+                        names.Add(preset.Name);
+                    }
+                }
+            }
+
+            ImagePresetsComboBox.ItemsSource = names;
+            ImagePresetsComboBox.SelectedItem = FindPath(names, selectedPresetName);
+            ImagePresetsComboBox.Text = selectedPresetName ?? string.Empty;
         }
 
         private void BrowseDefaultCoverImagePathButton_Click(object sender, RoutedEventArgs e)
@@ -37,18 +159,21 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.UseDefaultCoverImagePath(selectedPath);
             RefreshDisplayedValues();
         }
 
         private void ClearDefaultCoverImagePathButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearImagePresetSelection();
             settings.DefaultCoverImagePath = string.Empty;
             RefreshDisplayedValues();
         }
 
         private void ClearDefaultCoverImageUrlButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearImagePresetSelection();
             settings.DefaultCoverImageUrl = string.Empty;
             RefreshDisplayedValues();
         }
@@ -61,18 +186,21 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.UseDefaultBackgroundImagePath(selectedPath);
             RefreshDisplayedValues();
         }
 
         private void ClearDefaultBackgroundImagePathButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearImagePresetSelection();
             settings.DefaultBackgroundImagePath = string.Empty;
             RefreshDisplayedValues();
         }
 
         private void ClearDefaultBackgroundImageUrlButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearImagePresetSelection();
             settings.DefaultBackgroundImageUrl = string.Empty;
             RefreshDisplayedValues();
         }
@@ -94,6 +222,7 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.UseDefaultCoverImagePath(imagePath);
             DefaultCoverImagePathHistoryComboBox.Text = settings.DefaultCoverImagePath;
             SetLocalPreviewImage(
@@ -109,6 +238,7 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.UseDefaultBackgroundImagePath(imagePath);
             DefaultBackgroundImagePathHistoryComboBox.Text = settings.DefaultBackgroundImagePath;
             SetLocalPreviewImage(
@@ -144,6 +274,7 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.DefaultCoverImageUrl = DefaultCoverImageUrlTextBox.Text?.Trim() ?? string.Empty;
         }
 
@@ -154,6 +285,7 @@ namespace QuickCover
                 return;
             }
 
+            ClearImagePresetSelection();
             settings.DefaultBackgroundImageUrl = DefaultBackgroundImageUrlTextBox.Text?.Trim() ?? string.Empty;
         }
 
