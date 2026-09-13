@@ -8,7 +8,7 @@ namespace QuickCover
 {
     public class QuickCoverSettings : ISettings
     {
-        private const int MaxPathHistoryItems = 10;
+        private const int MaxPathHistoryItems = 5;
 
         private readonly QuickCoverPlugin plugin;
         private string editingDefaultCoverImagePath;
